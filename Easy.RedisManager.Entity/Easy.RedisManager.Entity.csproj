@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{ED9417B9-DF33-4440-ADAB-405C371CB7B2}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <ProjectGuid>{253146B3-BC72-4DAE-9FBD-9B493C555AB0}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Easy.RedisManager.Main</RootNamespace>
-    <AssemblyName>Easy.RedisManager.Main</AssemblyName>
+    <RootNamespace>Easy.RedisManager.Entity</RootNamespace>
+    <AssemblyName>Easy.RedisManager.Entity</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -24,13 +24,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -45,26 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="frmMain.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmMain.Designer.cs">
-      <DependentUpon>frmMain.cs</DependentUpon>
-    </Compile>
-    <Compile Include="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
+    <Compile Include="Config\RedisConnectionConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="frmMain.resx">
-      <DependentUpon>frmMain.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -86,25 +71,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Easy.Controls\Easy.Controls.csproj">
-      <Project>{1a5d0340-6c9d-4061-ac14-6f881773cb0c}</Project>
-      <Name>Easy.Controls</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Easy.RedisManager.Common\Easy.RedisManager.Common.csproj">
-      <Project>{6cd326f1-f65f-4b57-9378-ad4656ee42f5}</Project>
-      <Name>Easy.RedisManager.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Easy.RedisManager.Entity\Easy.RedisManager.Entity.csproj">
-      <Project>{253146b3-bc72-4dae-9fbd-9b493c555ab0}</Project>
-      <Name>Easy.RedisManager.Entity</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Easy.RedisManager.RedisAccess\Easy.RedisManager.RedisAccess.csproj">
-      <Project>{31f53cce-b8b2-44df-bcee-51565bff2b07}</Project>
-      <Name>Easy.RedisManager.RedisAccess</Name>
-    </ProjectReference>
+    <Folder Include="Redis\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

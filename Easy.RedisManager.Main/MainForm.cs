@@ -16,6 +16,7 @@ namespace Easy.RedisManager.Main
     /// </summary>
     public partial class MainForm : BasicForm
     {
+
         public MainForm()
         {
             InitializeComponent();
