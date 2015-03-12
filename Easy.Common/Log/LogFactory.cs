@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Easy.RedisManager.Common.Log
+namespace Easy.Common.Log
 {
     /// <summary>
     /// 日志工厂类，管理所有的ILogger对象
@@ -18,7 +18,7 @@ namespace Easy.RedisManager.Common.Log
         /// <returns>记录器接口实例</returns>
         public static ILogger CreateLogger(string loggerName)
         {
-            return new RedisLog(loggerName);
+            return new Log4Log(loggerName);
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Easy.RedisManager.Common.Log
         /// <returns>记录器接口实例</returns>
         public static ILogger CreateLogger(Type type)
         {
-            return new RedisLog(type.ToString());
+            return new Log4Log(type.ToString());
         }
     }
 }

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Easy.RedisManager.Common", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Easy.RedisManager.RedisAccess", "Easy.RedisManager.RedisAccess\Easy.RedisManager.RedisAccess.csproj", "{31F53CCE-B8B2-44DF-BCEE-51565BFF2B07}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Easy.Common", "Easy.Common\Easy.Common.csproj", "{FBB9CD59-F813-4BC7-B42E-07CF0B2A7A8E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{31F53CCE-B8B2-44DF-BCEE-51565BFF2B07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31F53CCE-B8B2-44DF-BCEE-51565BFF2B07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31F53CCE-B8B2-44DF-BCEE-51565BFF2B07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBB9CD59-F813-4BC7-B42E-07CF0B2A7A8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBB9CD59-F813-4BC7-B42E-07CF0B2A7A8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBB9CD59-F813-4BC7-B42E-07CF0B2A7A8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBB9CD59-F813-4BC7-B42E-07CF0B2A7A8E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
