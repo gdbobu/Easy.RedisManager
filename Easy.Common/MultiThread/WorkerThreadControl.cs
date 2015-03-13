@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Easy.Common.MultiThread
+namespace Easy.Common
 {
     public class WorkerThreadControl
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Easy.Common.Communication.SocketComm.EventArg
+namespace Easy.Common
 {
     public class TcpChannelReceivedEventArgs : EventArgs
     {

@@ -1,7 +1,4 @@
-﻿using Easy.Common.Communication.SocketComm.Enums;
-using Easy.Common.Communication.SocketComm.EventArg;
-using Easy.Common.MultiThread;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Easy.Common.Communication.SocketComm
+namespace Easy.Common
 {
     public class TcpServer : TcpChannel
     {

@@ -1,11 +1,10 @@
-﻿using Easy.Common.MultiThread.Exceptions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Easy.Common.MultiThread
+namespace Easy.Common
 {
     /// <summary>
     /// 工作线程定义

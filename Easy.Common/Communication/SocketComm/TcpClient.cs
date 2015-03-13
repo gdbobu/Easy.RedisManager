@@ -1,13 +1,11 @@
-﻿using Easy.Common.Communication.SocketComm.Enums;
-using Easy.Common.Communication.SocketComm.EventArg;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Easy.Common.Communication.SocketComm
+namespace Easy.Common
 {
     public class TcpClient : TcpChannel
     {

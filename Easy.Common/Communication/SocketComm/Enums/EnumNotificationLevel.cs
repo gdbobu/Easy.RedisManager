@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Easy.Common.Communication.SocketComm.Enums
+namespace Easy.Common
 {
     public enum EnumNotificationLevel:byte
     {

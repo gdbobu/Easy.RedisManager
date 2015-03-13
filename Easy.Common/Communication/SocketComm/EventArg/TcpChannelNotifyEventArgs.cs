@@ -1,10 +1,9 @@
-﻿using Easy.Common.Communication.SocketComm.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Easy.Common.Communication.SocketComm.EventArg
+namespace Easy.Common
 {
     public class TcpChannelNotifyEventArgs : EventArgs
     {

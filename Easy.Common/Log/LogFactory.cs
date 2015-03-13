@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Easy.Common.Log
+namespace Easy.Common
 {
     /// <summary>
     /// 日志工厂类，管理所有的ILogger对象
