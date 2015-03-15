@@ -1,4 +1,4 @@
-﻿using Easy.RedisManager.Common.Log;
+﻿using Easy.Common.Log;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

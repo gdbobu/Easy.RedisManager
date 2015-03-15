@@ -89,6 +89,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Easy.Common\Easy.Common.csproj">
+      <Project>{fbb9cd59-f813-4bc7-b42e-07cf0b2a7a8e}</Project>
+      <Name>Easy.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Easy.Controls\Easy.Controls.csproj">
       <Project>{1a5d0340-6c9d-4061-ac14-6f881773cb0c}</Project>
       <Name>Easy.Controls</Name>

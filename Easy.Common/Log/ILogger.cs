@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Easy.RedisManager.Common.Log
+namespace Easy.Common
 {
     /// <summary>
     /// 日志记录器对外接口

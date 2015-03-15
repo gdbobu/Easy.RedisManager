@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Easy.RedisManager.Common.Log
+namespace Easy.Common
 {
     /// <summary>
     /// Redis Log
     /// </summary>
-    public class RedisLog:ILogger
+    public class Log4Log:ILogger
     {
         private ILog m_Logger;//日志记录器
 
@@ -18,7 +18,7 @@ namespace Easy.RedisManager.Common.Log
         /// 构造函数
         /// </summary>
         /// <param name="loggerName">记录器对象的名称</param>
-        public RedisLog(string loggerName)
+        public Log4Log(string loggerName)
         {
             m_Logger = LogManager.GetLogger(loggerName);
         }
