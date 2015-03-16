@@ -1,19 +1,16 @@
-﻿using Easy.Common;
-using Easy.RedisManager.RedisAccess.Exceptions;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Easy.RedisManager.Entity.Config;
+using Easy.Common;
+using Easy.RedisManager.RedisAccess.Exceptions;
 
 namespace Easy.RedisManager.RedisAccess.Communication
 {
     /// <summary>
-    /// Redis通信客户端（Socket版）
+    ///     Redis通信客户端（Socket版）
     /// </summary>
     public class RedisSocketClient : IDisposable
     {
@@ -28,78 +25,91 @@ namespace Easy.RedisManager.RedisAccess.Communication
         #endregion
 
         #region Variable
-        // Socket实例
-        protected Socket _redisSocket = null;
-        // 接收数据的缓存
-        protected BufferedStream _buffStream = null;
-        // Timer类的实例
-        private Timer _usageTimer = null;
-        // 每小时请求的次数
-        private int _requestsPerHour = 0;
+
         // 记录日志类
-        private static readonly ILogger s_logger = LogFactory.CreateLogger(typeof(RedisSocketClient));
+        private static readonly ILogger s_logger = LogFactory.CreateLogger(typeof (RedisSocketClient));
+
+        private readonly System.Collections.Generic.IList<ArraySegment<byte>> cmdBuffer =
+            new System.Collections.Generic.List<ArraySegment<byte>>();
+
+        // Socket
+        protected Socket _redisSocket;
+        // 接收数据的缓存
+        protected BufferedStream _buffStream;
+        // Timer类的实例
+        private Timer _usageTimer;
+        // 每小时请求的次数
+        private int _requestsPerHour;
         // 客户端的端口号
         private int _clientPort;
         // 最近一次的命令
         private string _lastCommand;
         // 最近一次SocketException
         private SocketException _lastSocketException;
+        // 当前缓存
+        private byte[] currentBuffer = BufferPool.GetBuffer();
+        // 当前缓存的的索引
+        private int currentBufferIndex;
         // 最近一次连接的时间
         internal long _lastConnectedAtTimestamp;
+        // 是否释放
+        internal bool IsDisposed { get; set; }
+
         #endregion
 
         #region Property
+
         public int ServerVersionNumber { get; set; }
+
         /// <summary>
         /// 服务器的IP地址
         /// </summary>
         public string Host { get; set; }
+
         /// <summary>
         /// 服务器的端口号
         /// </summary>
         public int Port { get; set; }
+
         /// <summary>
         /// 连接Redis数据库的密码
         /// </summary>
         public string Password { get; set; }
+
         /// <summary>
         /// 当前连接的Redis数据库的数据库编号
         /// </summary>
         public int DB { get; set; }
+
         /// <summary>
         /// 连接服务器超时时间
         /// </summary>
         public int ConnectTimeout { get; set; }
+
         /// <summary>
         /// 发送数据超时时间
         /// </summary>
         public int SendTimeout { get; set; }
+
         /// <summary>
         /// 接收数据的超时时间
         /// </summary>
         public int ReceiveTimeout { get; set; }
+
         /// <summary>
         /// 是否有异常
         /// </summary>
         public bool HadExceptions { get; protected set; }
+
         /// <summary>
         /// 空闲时间
         /// </summary>
         public int IdleTimeOutSecs { get; set; }
 
-        private long _db;
-        public long Db
-        {
-            get
-            {
-                return _db;
-            }
-
-            set
-            {
-                _db = value;
-            }
-        }
+        /// <summary>
+        /// 选择的数据库
+        /// </summary>
+        public long Db { get; set; }
 
         #endregion
 
@@ -119,81 +129,79 @@ namespace Easy.RedisManager.RedisAccess.Communication
             // 在超过 dueTime 后及此后每隔 period 时间间隔，都会调用一次由 callback 参数指定的委托。
             // 如果 dueTime 为零 (0)，则立即调用 callback。 如果 dueTime 是 -1 毫秒，则不会调用 callback；计时器将被禁用，但通过调用 Change 方法可以重新启用计时器。
             // 如果 period 为零 (0) 或 -1 毫秒，而且 dueTime 为正，则只会调用一次 callback；计时器的定期行为将被禁用，但通过使用 Change 方法可以重新启用该行为。
-            if (this._usageTimer == null)
+            if (_usageTimer == null)
             {
-                this._usageTimer = new Timer(delegate
-                {
-                    this._requestsPerHour = 0;
-                }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromHours(1));
+                _usageTimer = new Timer(delegate { this._requestsPerHour = 0; }, null, TimeSpan.FromMilliseconds(0),
+                    TimeSpan.FromHours(1));
             }
 
             // 初始化Socket
-            this._redisSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            _redisSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
-               SendTimeout =  SendTimeout,
-               ReceiveTimeout =  ReceiveTimeout
+                SendTimeout = SendTimeout,
+                ReceiveTimeout = ReceiveTimeout
             };
 
             try
             {
                 if (ConnectTimeout == 0)
                 {
-                    this._redisSocket.Connect(Host, Port);
+                    _redisSocket.Connect(Host, Port);
                 }
                 else
                 {
-                    var connectResult = this._redisSocket.BeginConnect(Host, Port, null, null);
+                    var connectResult = _redisSocket.BeginConnect(Host, Port, null, null);
                     // 阻塞当前进程，直到收到信号位置，或者到了超时时间后，退出
                     connectResult.AsyncWaitHandle.WaitOne(ConnectTimeout, true);
                 }
 
-                if (!this._redisSocket.Connected)
+                if (!_redisSocket.Connected)
                 {
-                    this._redisSocket.Close();
-                    this._redisSocket.Dispose();
-                    this._redisSocket = null;
+                    _redisSocket.Close();
+                    _redisSocket.Dispose();
+                    _redisSocket = null;
                     HadExceptions = true;
                     return;
                 }
 
                 // 初始化16KB的缓存
-                _buffStream = new BufferedStream(new NetworkStream(this._redisSocket), 16 * 1024);
+                _buffStream = new BufferedStream(new NetworkStream(_redisSocket), 16*1024);
 
-                if(!string.IsNullOrEmpty(Password))
-
+                if (!string.IsNullOrEmpty(Password)) 
             }
             catch (Exception ex)
             {
-                throw;
+                s_logger.Error("Error when trying to Connect().ErrorMessage:" + ex.Message);
+                s_logger.Error("Error when trying to Connect().ErrorMessage:" + ex.StackTrace);
             }
         }
 
         /// <summary>
-        /// 确保Socket是否连接
+        ///     确保Socket是否连接
         /// </summary>
         /// <returns></returns>
         private bool AssertConnectedSocket()
         {
-            if (this._lastConnectedAtTimestamp > 0)
+            if (_lastConnectedAtTimestamp > 0)
             {
                 var now = Stopwatch.GetTimestamp();
                 // 获取间隔的秒数
-                var elapsedSecs = (now - this._lastConnectedAtTimestamp)/Stopwatch.Frequency;
+                var elapsedSecs = (now - _lastConnectedAtTimestamp)/Stopwatch.Frequency;
 
-                if (this._redisSocket == null || (elapsedSecs > IdleTimeOutSecs && !this._redisSocket.IsConnected()))
+                if (_redisSocket == null || (elapsedSecs > IdleTimeOutSecs && !_redisSocket.IsConnected()))
                 {
                     return ReConnect();
                 }
 
-                this._lastConnectedAtTimestamp = now;
+                _lastConnectedAtTimestamp = now;
             }
 
-            if (this._redisSocket == null)
+            if (_redisSocket == null)
             {
                 Connect();
             }
 
-            return this._redisSocket != null;
+            return _redisSocket != null;
         }
 
         /// <summary>
@@ -202,13 +210,13 @@ namespace Easy.RedisManager.RedisAccess.Communication
         /// <returns></returns>
         private bool ReConnect()
         {
-            var previousDb = this._db;
+            var previousDb = Db;
 
             SafeConnectionClose();
             Connect(); //sets db to 0
 
-            if (previousDb != DefaultDb) this._db = previousDb;
-            return this._redisSocket != null;
+            if (previousDb != DefaultDb) Db = previousDb;
+            return _redisSocket != null;
         }
 
         public void Start()
@@ -218,33 +226,44 @@ namespace Easy.RedisManager.RedisAccess.Communication
         public void Close()
         {
         }
+
+        /// <summary>
+        /// 以安全的方式关闭链接
+        /// </summary>
         private void SafeConnectionClose()
         {
             try
             {
                 // workaround for a .net bug: http://support.microsoft.com/kb/821625
-                if (this._buffStream != null)
+                if (_buffStream != null)
                     _buffStream.Close();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                s_logger.Error("Error when trying to BufferStaream Close().ErrorMessage:" + ex.Message);
+                s_logger.Error("Error when trying to BufferStaream Close().ErrorMessage:" + ex.StackTrace);
+            }
 
             try
             {
-                if (this._redisSocket != null)
-                    this._redisSocket.Close();
+                if (_redisSocket != null)
+                    _redisSocket.Close();
             }
-            catch { }
-            this._buffStream = null;
-            this._redisSocket = null;
+            catch (Exception ex)
+            {
+                s_logger.Error("Error when trying to Socket Close().ErrorMessage:" + ex.Message);
+                s_logger.Error("Error when trying to Socket Close()..ErrorMessage:" + ex.StackTrace);
+            }
+            _buffStream = null;
+            _redisSocket = null;
         }
 
         public void Send()
         {
-            
         }
 
         /// <summary>
-        /// Command to set multuple binary safe arguments
+        ///     Command to set multuple binary safe arguments
         /// </summary>
         /// <param name="cmdWithBinaryArgs"></param>
         /// <returns></returns>
@@ -267,14 +286,53 @@ namespace Easy.RedisManager.RedisAccess.Communication
 
             return true;
         }
-        
-        internal bool IsDisposed { get; set; }
+
+        /// <summary>
+        /// 写数据到发送缓存
+        /// </summary>
+        /// <param name="cmdWithBinaryArgs"></param>
+        private void WriteAllToSendBuffer(params byte[][] cmdWithBinaryArgs)
+        {
+            WriteToSendBuffer(GetCmdBytes('*', cmdWithBinaryArgs.Length));
+
+            foreach (var safeBinaryValue in cmdWithBinaryArgs)
+            {
+                WriteToSendBuffer(GetCmdBytes('$', safeBinaryValue.Length));
+                WriteToSendBuffer(safeBinaryValue);
+                WriteToSendBuffer(endData);
+            }
+        }
+
+        /// <summary>
+        /// 获取发送数据的字节流
+        /// </summary>
+        /// <param name="cmdPrefix"></param>
+        /// <param name="numOfLines"></param>
+        /// <returns></returns>
+        private byte[] GetCmdBytes(char cmdPrefix, int numOfLines)
+        {
+            var strLines = numOfLines.ToString();
+            var strLinesLength = strLines.Length;
+
+            var cmdBytes = new byte[1 + strLinesLength + 2];
+            cmdBytes[0] = (byte) cmdPrefix;
+
+            for (var i = 0; i < strLinesLength; i++)
+                cmdBytes[i + 1] = (byte) strLines[i];
+
+            cmdBytes[1 + strLinesLength] = 0x0D; // \r
+            cmdBytes[2 + strLinesLength] = 0x0A; // \n
+
+            return cmdBytes;
+        }
+
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         protected virtual void Dispose(bool disposing)
         {
             //if (ClientManager != null)
@@ -295,12 +353,15 @@ namespace Easy.RedisManager.RedisAccess.Communication
             Dispose(false);
         }
 
+        /// <summary>
+        /// 释放连接
+        /// </summary>
         internal void DisposeConnection()
         {
-			if (IsDisposed) return;
+            if (IsDisposed) return;
             IsDisposed = true;
 
-            if (this._redisSocket == null) return;
+            if (_redisSocket == null) return;
 
             try
             {
@@ -308,7 +369,8 @@ namespace Easy.RedisManager.RedisAccess.Communication
             }
             catch (Exception ex)
             {
-                s_logger.Error("Error when trying to Quit()", ex);
+                s_logger.Error("Error when trying to Quit().ErrorMessage:" + ex.Message);
+                s_logger.Error("Error when trying to Quit().ErrorMessage:" + ex.StackTrace);
             }
             finally
             {
@@ -317,9 +379,11 @@ namespace Easy.RedisManager.RedisAccess.Communication
         }
 
         #region Business Method
+
         #endregion
 
         #region Log Method
+
         /// <summary>
         /// 输出日志
         /// </summary>
@@ -334,15 +398,17 @@ namespace Easy.RedisManager.RedisAccess.Communication
 
                 sb.Append(arg.FromUtf8Bytes());
             }
-            this._lastCommand = sb.ToString();
-            if (this._lastCommand.Length > 100)
-                this._lastCommand = this._lastCommand.Substring(0, 100) + "...";
+            _lastCommand = sb.ToString();
+            if (_lastCommand.Length > 100)
+                _lastCommand = _lastCommand.Substring(0, 100) + "...";
 
-            s_logger.Debug("S: " + this._lastCommand);
+            s_logger.Debug("S: " + _lastCommand);
         }
+
         #endregion
 
         #region Exception
+
         /// <summary>
         /// 生成ResponseError
         /// </summary>
@@ -352,7 +418,7 @@ namespace Easy.RedisManager.RedisAccess.Communication
         {
             HadExceptions = true;
             var throwEx = new RedisResponseException(
-                string.Format("{0}, Port: {1}, LastCommand: {2}", error, this._clientPort, this._lastCommand));
+                string.Format("{0}, Port: {1}, LastCommand: {2}", error, _clientPort, _lastCommand));
             s_logger.Error(throwEx.Message);
             throw throwEx;
         }
@@ -365,10 +431,11 @@ namespace Easy.RedisManager.RedisAccess.Communication
         {
             HadExceptions = true;
             var throwEx = new RedisException(
-                string.Format("Unable to Connect: Port: {0}", this._clientPort), this._lastSocketException);
+                string.Format("Unable to Connect: Port: {0}", _clientPort), _lastSocketException);
             s_logger.Error(throwEx.Message);
             throw throwEx;
         }
+
         #endregion
 
         #endregion
