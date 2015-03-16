@@ -1,6 +1,6 @@
 ﻿namespace Easy.RedisManager.Main
 {
-    partial class frmMain
+    partial class FrmMain
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.spCLayout = new System.Windows.Forms.SplitContainer();
             this.tablLlPLeft = new System.Windows.Forms.TableLayoutPanel();
             this.tVDBList = new System.Windows.Forms.TreeView();

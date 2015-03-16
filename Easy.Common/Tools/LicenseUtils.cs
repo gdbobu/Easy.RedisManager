@@ -11,49 +11,8 @@ namespace Easy.Common
         public LicenseException(string message) : base(message) { }
     }
 
-    public enum LicenseType
-    {
-        Free,
-        Indie,
-        Business,
-        Enterprise,
-        TextIndie,
-        TextBusiness,
-        OrmLiteIndie,
-        OrmLiteBusiness,
-        RedisIndie,
-        RedisBusiness,
-    }
 
-    [Flags]
-    public enum LicenseFeature : long
-    {
-        None = 0,
-        All = Premium | Text | Client | Common | Redis | OrmLite | ServiceStack | Server | Razor | Admin,
-        RedisSku = Redis | Text,
-        OrmLiteSku = OrmLite | Text,
-        Free = None,
-        Premium = 1 << 0,
-        Text = 1 << 1,
-        Client = 1 << 2,
-        Common = 1 << 3,
-        Redis = 1 << 4,
-        OrmLite = 1 << 5,
-        ServiceStack = 1 << 6,
-        Server = 1 << 7,
-        Razor = 1 << 8,
-        Admin = 1 << 9,
-    }
 
-    public enum QuotaType
-    {
-        Operations,      //ServiceStack
-        Types,           //Text, Redis
-        Fields,          //ServiceStack, Text, Redis, OrmLite
-        RequestsPerHour, //Redis
-        Tables,          //OrmLite
-        PremiumFeature,  //AdminUI, Advanced Redis APIs, etc
-    }
 
     /// <summary>
     /// Public Code API to register commercial license for ServiceStack.
@@ -88,7 +47,7 @@ namespace Easy.Common
     {
         public string Ref { get; set; }
         public string Name { get; set; }
-        public LicenseType Type { get; set; }
+        public EnumLicenseType Type { get; set; }
         public string Hash { get; set; }
         public DateTime Expiry { get; set; }
     }
@@ -155,7 +114,7 @@ namespace Easy.Common
                 cutomerId = parts[0];
 
                 LicenseKey key;
-                using (new AccessToken(LicenseFeature.Text))
+                using (new AccessToken(EnumLicenseFeature.Text))
                 {
                     key = PclExport.Instance.VerifyLicenseKeyText(licenseKeyText);
                 }
@@ -185,12 +144,12 @@ namespace Easy.Common
             __activatedLicense = null;
         }
 
-        public static LicenseFeature ActivatedLicenseFeatures()
+        public static EnumLicenseFeature ActivatedLicenseFeatures()
         {
-            return __activatedLicense != null ? __activatedLicense.GetLicensedFeatures() : LicenseFeature.None;
+            return __activatedLicense != null ? __activatedLicense.GetLicensedFeatures() : EnumLicenseFeature.None;
         }
 
-        public static void ApprovedUsage(LicenseFeature licenseFeature, LicenseFeature requestedFeature,
+        public static void ApprovedUsage(EnumLicenseFeature licenseFeature, EnumLicenseFeature requestedFeature,
             int allowedUsage, int actualUsage, string message)
         {
             var hasFeature = (requestedFeature & licenseFeature) == requestedFeature;
@@ -201,16 +160,16 @@ namespace Easy.Common
                 throw new LicenseException(message.Fmt(allowedUsage)).Trace();
         }
 
-        public static bool HasLicensedFeature(LicenseFeature feature)
+        public static bool HasLicensedFeature(EnumLicenseFeature feature)
         {
             var licensedFeatures = ActivatedLicenseFeatures();
             return (feature & licensedFeatures) == feature;
         }
 
-        public static void AssertValidUsage(LicenseFeature feature, QuotaType quotaType, int count)
+        public static void AssertValidUsage(EnumLicenseFeature feature, EnumQuotaType quotaType, int count)
         {
             var licensedFeatures = ActivatedLicenseFeatures();
-            if ((LicenseFeature.All & licensedFeatures) == LicenseFeature.All) //Standard Usage
+            if ((EnumLicenseFeature.All & licensedFeatures) == EnumLicenseFeature.All) //Standard Usage
                 return;
 
             if (AccessTokenScope != null)
@@ -222,58 +181,58 @@ namespace Easy.Common
             //Free Quotas
             switch (feature)
             {
-                case LicenseFeature.Text:
+                case EnumLicenseFeature.Text:
                     switch (quotaType)
                     {
-                        case QuotaType.Types:
+                        case EnumQuotaType.Types:
                             ApprovedUsage(licensedFeatures, feature, FreeQuotas.TextTypes, count, ErrorMessages.ExceededTextTypes);
                             return;
                     }
                     break;
 
-                case LicenseFeature.Redis:
+                case EnumLicenseFeature.Redis:
                     switch (quotaType)
                     {
-                        case QuotaType.Types:
+                        case EnumQuotaType.Types:
                             ApprovedUsage(licensedFeatures, feature, FreeQuotas.RedisTypes, count, ErrorMessages.ExceededRedisTypes);
                             return;
-                        case QuotaType.RequestsPerHour:
+                        case EnumQuotaType.RequestsPerHour:
                             ApprovedUsage(licensedFeatures, feature, FreeQuotas.RedisRequestPerHour, count, ErrorMessages.ExceededRedisRequests);
                             return;
                     }
                     break;
 
-                case LicenseFeature.OrmLite:
+                case EnumLicenseFeature.OrmLite:
                     switch (quotaType)
                     {
-                        case QuotaType.Tables:
+                        case EnumQuotaType.Tables:
                             ApprovedUsage(licensedFeatures, feature, FreeQuotas.OrmLiteTables, count, ErrorMessages.ExceededOrmLiteTables);
                             return;
                     }
                     break;
 
-                case LicenseFeature.ServiceStack:
+                case EnumLicenseFeature.ServiceStack:
                     switch (quotaType)
                     {
-                        case QuotaType.Operations:
+                        case EnumQuotaType.Operations:
                             ApprovedUsage(licensedFeatures, feature, FreeQuotas.ServiceStackOperations, count, ErrorMessages.ExceededServiceStackOperations);
                             return;
                     }
                     break;
 
-                case LicenseFeature.Admin:
+                case EnumLicenseFeature.Admin:
                     switch (quotaType)
                     {
-                        case QuotaType.PremiumFeature:
+                        case EnumQuotaType.PremiumFeature:
                             ApprovedUsage(licensedFeatures, feature, FreeQuotas.PremiumFeature, count, ErrorMessages.ExceededAdminUi);
                             return;
                     }
                     break;
 
-                case LicenseFeature.Premium:
+                case EnumLicenseFeature.Premium:
                     switch (quotaType)
                     {
-                        case QuotaType.PremiumFeature:
+                        case EnumQuotaType.PremiumFeature:
                             ApprovedUsage(licensedFeatures, feature, FreeQuotas.PremiumFeature, count, ErrorMessages.ExceededPremiumFeature);
                             return;
                     }
@@ -283,29 +242,29 @@ namespace Easy.Common
             throw new LicenseException("Unknown Quota Usage: {0}, {1}".Fmt(feature, quotaType)).Trace();
         }
 
-        public static LicenseFeature GetLicensedFeatures(this LicenseKey key)
+        public static EnumLicenseFeature GetLicensedFeatures(this LicenseKey key)
         {
             switch (key.Type)
             {
-                case LicenseType.Free:
-                    return LicenseFeature.Free;
+                case EnumLicenseType.Free:
+                    return EnumLicenseFeature.Free;
 
-                case LicenseType.Indie:
-                case LicenseType.Business:
-                case LicenseType.Enterprise:
-                    return LicenseFeature.All;
+                case EnumLicenseType.Indie:
+                case EnumLicenseType.Business:
+                case EnumLicenseType.Enterprise:
+                    return EnumLicenseFeature.All;
 
-                case LicenseType.TextIndie:
-                case LicenseType.TextBusiness:
-                    return LicenseFeature.Text;
+                case EnumLicenseType.TextIndie:
+                case EnumLicenseType.TextBusiness:
+                    return EnumLicenseFeature.Text;
 
-                case LicenseType.OrmLiteIndie:
-                case LicenseType.OrmLiteBusiness:
-                    return LicenseFeature.OrmLiteSku;
+                case EnumLicenseType.OrmLiteIndie:
+                case EnumLicenseType.OrmLiteBusiness:
+                    return EnumLicenseFeature.OrmLiteSku;
 
-                case LicenseType.RedisIndie:
-                case LicenseType.RedisBusiness:
-                    return LicenseFeature.RedisSku;
+                case EnumLicenseType.RedisIndie:
+                case EnumLicenseType.RedisBusiness:
+                    return EnumLicenseFeature.RedisSku;
             }
             throw new ArgumentException("Unknown License Type: " + key.Type).Trace();
         }
@@ -345,8 +304,8 @@ namespace Easy.Common
         private class AccessToken : IDisposable
         {
             private readonly AccessToken prevToken;
-            internal readonly LicenseFeature tempFeatures;
-            internal AccessToken(LicenseFeature requested)
+            internal readonly EnumLicenseFeature tempFeatures;
+            internal AccessToken(EnumLicenseFeature requested)
             {
                 prevToken = AccessTokenScope;
                 AccessTokenScope = this;
@@ -377,11 +336,11 @@ namespace Easy.Common
             };
         }
 
-        public static IDisposable RequestAccess(object accessToken, LicenseFeature srcFeature, LicenseFeature requestedAccess)
+        public static IDisposable RequestAccess(object accessToken, EnumLicenseFeature srcFeature, EnumLicenseFeature requestedAccess)
         {
             var accessType = accessToken.GetType();
 
-            if (srcFeature != LicenseFeature.Client || requestedAccess != LicenseFeature.Text || accessToken == null)
+            if (srcFeature != EnumLicenseFeature.Client || requestedAccess != EnumLicenseFeature.Text || accessToken == null)
                 throw new LicenseException(ErrorMessages.UnauthorizedAccessRequest).Trace();
 
             if (accessType.Name == "AccessToken" && accessType.GetAssembly().ManifestModule.Name.StartsWith("<")) //Smart Assembly

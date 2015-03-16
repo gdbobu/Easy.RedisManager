@@ -19,7 +19,7 @@ namespace Easy.Common
         {
             if (!IsUserType) return;
 
-            LicenseUtils.AssertValidUsage(LicenseFeature.Text, QuotaType.Types, JsConfig.__uniqueTypesCount);
+            LicenseUtils.AssertValidUsage(EnumLicenseFeature.Text, EnumQuotaType.Types, JsConfig.__uniqueTypesCount);
         }
 
         internal TypeConfig(Type type)

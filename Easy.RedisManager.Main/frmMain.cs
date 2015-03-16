@@ -10,19 +10,19 @@ using System.Windows.Forms;
 
 namespace Easy.RedisManager.Main
 {
-    public partial class frmMain : Form
+    public partial class FrmMain : Form
     {
         /// <summary>
         /// 日志记录
         /// </summary>
-        private ILogger m_Logger = null;
+        private readonly ILogger m_Logger = null;
 
-        public frmMain()
+        public FrmMain()
         {
             InitializeComponent();
 
             // 初始化日志记录
-            m_Logger = LogFactory.CreateLogger(typeof(frmMain)); 
+            m_Logger = LogFactory.CreateLogger(typeof(FrmMain)); 
         }
 
         /// <summary>
@@ -34,8 +34,8 @@ namespace Easy.RedisManager.Main
         {
             m_Logger.Debug("btnManageConn_Click Start.");
 
-            Point pScreen = this.btnManageConn.PointToScreen(this.btnManageConn.Location);
-            Point point = new Point();
+            var pScreen = this.btnManageConn.PointToScreen(this.btnManageConn.Location);
+            var point = new Point();
             point.X = pScreen.X;
             point.Y = pScreen.Y + this.btnManageConn.Size.Height;
 

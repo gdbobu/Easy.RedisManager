@@ -74,7 +74,10 @@
     <Compile Include="Entity\WriteDictionary.cs" />
     <Compile Include="Entity\WriteLists.cs" />
     <Compile Include="Entity\WriteType.cs" />
+    <Compile Include="Enums\EnumLicenseFeature.cs" />
+    <Compile Include="Enums\EnumLicenseType.cs" />
     <Compile Include="Enums\EnumParseAsType.cs" />
+    <Compile Include="Enums\EnumQuotaType.cs" />
     <Compile Include="Extensions\CollectionExtensions.cs" />
     <Compile Include="Extensions\CsvStreamExtensions.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
