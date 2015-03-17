@@ -81,6 +81,7 @@
     <Compile Include="Extensions\CollectionExtensions.cs" />
     <Compile Include="Extensions\CsvStreamExtensions.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\JsonExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Extensions\MapExtensions.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="MultiThread\WorkerThreadControl.cs" />
     <Compile Include="Patterns\Singleton.cs" />
     <Compile Include="PclExport\PclExport.cs" />
+    <Compile Include="Pool\BufferPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecyclableMemoryStream.cs" />
     <Compile Include="Reflection\StaticAccessors.cs" />

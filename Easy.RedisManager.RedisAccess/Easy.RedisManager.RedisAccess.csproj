@@ -51,6 +51,10 @@
       <Project>{fbb9cd59-f813-4bc7-b42e-07cf0b2a7a8e}</Project>
       <Name>Easy.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Easy.RedisManager.Common\Easy.RedisManager.Common.csproj">
+      <Project>{6cd326f1-f65f-4b57-9378-ad4656ee42f5}</Project>
+      <Name>Easy.RedisManager.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Easy.RedisManager.Entity\Easy.RedisManager.Entity.csproj">
       <Project>{253146b3-bc72-4dae-9fbd-9b493c555ab0}</Project>
       <Name>Easy.RedisManager.Entity</Name>

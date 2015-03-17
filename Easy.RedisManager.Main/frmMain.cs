@@ -1,4 +1,4 @@
-﻿using Easy.Common.Log;
+﻿using Easy.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

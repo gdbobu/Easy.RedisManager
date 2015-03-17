@@ -53,7 +53,10 @@
     <Compile Include="Redis\IEndpoint.cs" />
     <Compile Include="Redis\IHasId.cs" />
     <Compile Include="Redis\IHasStringId.cs" />
+    <Compile Include="Redis\IRedisPipelineShared.cs" />
+    <Compile Include="Redis\IRedisQueueCompletableOperation.cs" />
     <Compile Include="Redis\RedisEndpoint.cs" />
+    <Compile Include="Redis\ScanResult.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

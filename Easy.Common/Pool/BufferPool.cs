@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Easy.Common.Pool
+namespace Easy.Common
 {
     /// <summary>
     /// Buffer池，用于集中管控Socket缓冲区，防止内存碎片。
