@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<connections>
+ <connection host="127.0.0.1" name="local" port="6379"/>
+ <connection host="10.1.6.82" name="10.1.6.82" auth="10.1.6.82" port="6379"/>
+ <connection host="10.100.12.16" name="10.100.12.16" port="6379"/>
+ <connection host="10.100.12.16" name="10.100.12.16" port="6380"/>
+</connections>

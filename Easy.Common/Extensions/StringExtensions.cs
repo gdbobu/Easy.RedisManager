@@ -813,7 +813,7 @@ namespace Easy.Common
 
         public static int ToInt(this string text)
         {
-            return text == null ? default(int) : Int32.Parse(text);
+            return string.IsNullOrEmpty(text) ? default(int) : Int32.Parse(text);
         }
 
         public static int ToInt(this string text, int defaultValue)

@@ -105,6 +105,18 @@
       <Project>{253146b3-bc72-4dae-9fbd-9b493c555ab0}</Project>
       <Name>Easy.RedisManager.Entity</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Easy.RedisManager.RedisAccess\Easy.RedisManager.RedisAccess.csproj">
+      <Project>{31f53cce-b8b2-44df-bcee-51565bff2b07}</Project>
+      <Name>Easy.RedisManager.RedisAccess</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Config\RedisConnections.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="Image\clear.png" />
+    <None Include="Image\ok.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

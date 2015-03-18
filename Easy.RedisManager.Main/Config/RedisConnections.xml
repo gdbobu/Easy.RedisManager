@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<RedisConnections>
+    <RedisConnection Host="10.138.30.12" Name="10.138.30.12" Port="6380"/>
+    <RedisConnection Host="10.138.60.24" Name="10.138.60.24" Auth="10.138.60.24" Port="6379"/>
+    <RedisConnection Host="10.138.60.18" Name="10.138.60.18" Port="6379"/>
+</RedisConnections>

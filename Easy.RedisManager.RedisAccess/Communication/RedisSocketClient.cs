@@ -13,6 +13,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using Easy.RedisManager.Common.Enum;
 using System.Globalization;
+using Microsoft.Win32;
 
 namespace Easy.RedisManager.RedisAccess.Communication
 {
@@ -23,6 +24,7 @@ namespace Easy.RedisManager.RedisAccess.Communication
     {
         #region Constant
 
+        public const int MaxRedisDbCount = 1024;
         public const int UnKnown = -1;
         public const long DefaultDb = 0;
         public const int DefaultPort = 6379;
@@ -165,6 +167,8 @@ namespace Easy.RedisManager.RedisAccess.Communication
             {
                 return SendExpectLong(RedisCommands.DbSize);
             }
+
+            private set { } 
         }
 
         /// <summary>
@@ -498,7 +502,7 @@ namespace Easy.RedisManager.RedisAccess.Communication
         }
 
         /// <summary>
-        /// 清空缓存
+        /// 把缓存中的数据推送到Socket发送缓存
         /// </summary>
         /// <returns></returns>
         public bool FlushSendBuffer()
@@ -506,11 +510,19 @@ namespace Easy.RedisManager.RedisAccess.Communication
             try
             {
                 if (_currentBufferIndex > 0)
-                    PushCurrentBuffer();
+                    PushCurrentBufferAndGetNewBuffer();
 
                 if (!Env.IsMono)
                 {
-                    _redisSocket.Send(_cmdBuffer); //Optimized for Windows
+                    // Socket的Send方法，并非大家想象中的从一个端口发送消息到另一个端口，
+                    // 它仅仅是拷贝数据到基础系统的发送缓冲区，然后由基础系统将发送缓冲区的数据到连接的另一端口。
+                    // 值得一说的是，这里的拷贝数据与异步发送消息的拷贝是不一样的，
+                    // 同步发送的拷贝，是直接拷贝数据到基础系统缓冲区，拷贝完成后返回，在拷贝的过程中，执行线程会IO等待,
+                    // 此种拷贝与Socket自带的Buffer空间无关，
+                    // 但异步发送消息的拷贝，是将Socket自带的Buffer空间内的所有数据，拷贝到基础系统发送缓冲区，并立即返回，
+                    // 执行线程无需IO等待，所以异步发送在发送前必须执行SetBuffer方法，拷贝完成后，会触发你自定义回调函数ProcessSend，
+                    // 在ProcessSend方法中，调用SetBuffer方法，重新初始化Buffer空间。
+                    _redisSocket.Send(_cmdBuffer); // Optimized for Windows
                 }
                 else
                 {
@@ -541,7 +553,6 @@ namespace Easy.RedisManager.RedisAccess.Communication
                 throw CreateResponseError("No more data");
 
             var s = ReadLine();
-
             Log((char)c + s);
 
             if (c == '-')
@@ -555,7 +566,6 @@ namespace Easy.RedisManager.RedisAccess.Communication
                 throw CreateResponseError("No more data");
 
             var s = ReadLine();
-
             Log((char)c + s);
 
             if (c == '-')
@@ -570,7 +580,6 @@ namespace Easy.RedisManager.RedisAccess.Communication
                 throw CreateResponseError("No more data");
 
             var s = ReadLine();
-
             Log((char)c + s);
 
             if (c == '-')
@@ -744,7 +753,7 @@ namespace Easy.RedisManager.RedisAccess.Communication
         /// 保存现在的Buffer到命令Buffer队列
         /// 获取一个新的Buffer
         /// </summary>
-        private void PushCurrentBuffer()
+        private void PushCurrentBufferAndGetNewBuffer()
         {
             _cmdBuffer.Add(new ArraySegment<byte>(_currentBuffer, 0, _currentBufferIndex));
             _currentBuffer = BufferPool.GetBuffer();
@@ -758,8 +767,8 @@ namespace Easy.RedisManager.RedisAccess.Communication
         public void WriteToSendBuffer(byte[] cmdBytes)
         {
             if (CouldAddCurrentBuffer((cmdBytes))) return;
-
-            PushCurrentBuffer();
+            
+            PushCurrentBufferAndGetNewBuffer();
 
             if (CouldAddCurrentBuffer((cmdBytes))) return;
 
@@ -772,7 +781,6 @@ namespace Easy.RedisManager.RedisAccess.Communication
                 _cmdBuffer.Add(new ArraySegment<byte>(copyOfBytes, 0, bytesToCopy));
                 bytesCopied += bytesToCopy;
             }
-
         }
 
         /// <summary>
@@ -781,6 +789,7 @@ namespace Easy.RedisManager.RedisAccess.Communication
         /// <param name="cmdWithBinaryArgs"></param>
         private void WriteAllToSendBuffer(params byte[][] cmdWithBinaryArgs)
         {
+            // 把字节数组的长度写入缓存
             WriteToSendBuffer(GetCmdBytes('*', cmdWithBinaryArgs.Length));
 
             foreach (var safeBinaryValue in cmdWithBinaryArgs)
@@ -1929,6 +1938,72 @@ namespace Easy.RedisManager.RedisAccess.Communication
             var cmdWithArgs = MergeCommandWithArgs(RedisCommands.PfMerge, toKeyId.ToUtf8Bytes(), fromKeyBytes);
             SendExpectSuccess(cmdWithArgs);
         }
+        #endregion
+
+        #region Business Method
+
+        /// <summary>
+        /// 获取Redis数据库的DB数量和每个DB键的个数
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<long, long> GetRedisDbAndDbSize()
+        {
+            var dicDb = new Dictionary<long, long>();
+            try
+            {
+                for(long dbIndex = 0; dbIndex < MaxRedisDbCount; dbIndex++)
+                {
+                    Db = dbIndex;
+                    SendExpectSuccess(RedisCommands.Select, Db.ToUtf8Bytes());
+                    DbSize = SendExpectLong(RedisCommands.DbSize);
+                    dicDb.Add(Db, DbSize);
+                }
+
+                Db = 0;
+                SendExpectSuccess(RedisCommands.Select, Db.ToUtf8Bytes());
+                DbSize = SendExpectLong(RedisCommands.DbSize);
+            }
+            catch (RedisResponseException ex)
+            {
+                SLogger.Error("FrmMain_Load Error. Message:" + ex.Message);
+                SLogger.Error("FrmMain_Load Error. StackTrace:" + ex.StackTrace);
+            }
+            catch (Exception ex)
+            {
+                SLogger.Error("FrmMain_Load Error. Message:" + ex.Message);
+                SLogger.Error("FrmMain_Load Error. StackTrace:" + ex.StackTrace);
+            }
+
+            return dicDb;
+        }
+
+        /// <summary>
+        /// 获取指定数据的所有Key
+        /// </summary>
+        /// <param name="db"></param>
+        public List<string> GetAllKeysByDb(long db)
+        {
+            try
+            {
+                Db = db;
+                SendExpectSuccess(RedisCommands.Select, Db.ToUtf8Bytes());
+                DbSize = SendExpectLong(RedisCommands.DbSize);
+                return SendExpectMultiData(RedisCommands.Keys, "*".ToUtf8Bytes()).ToStringList();
+            }
+            catch (RedisResponseException ex)
+            {
+                SLogger.Error("FrmMain_Load Error. Message:" + ex.Message);
+                SLogger.Error("FrmMain_Load Error. StackTrace:" + ex.StackTrace);
+            }
+            catch (Exception ex)
+            {
+                SLogger.Error("FrmMain_Load Error. Message:" + ex.Message);
+                SLogger.Error("FrmMain_Load Error. StackTrace:" + ex.StackTrace);
+            }
+
+            return new List<string>();
+        }
+
         #endregion
 
         #endregion

@@ -11,6 +11,10 @@ namespace Easy.RedisManager.Entity.Config
     public class RedisConnectionConfig
     {
         /// <summary>
+        /// 是否已经连接
+        /// </summary>
+        public bool IsConnected { get; set; }
+        /// <summary>
         /// ID
         /// </summary>
         public int ID { get; set; }
