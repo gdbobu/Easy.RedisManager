@@ -48,9 +48,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\RedisConnectionConfig.cs" />
+    <Compile Include="Config\RedisConnConfig.cs" />
     <Compile Include="Dictionary\BaseDict.cs" />
     <Compile Include="Dictionary\RedisConnectionDict.cs" />
+    <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Redis\IEndpoint.cs" />
     <Compile Include="Redis\IHasId.cs" />
@@ -84,6 +85,10 @@
     <ProjectReference Include="..\Easy.Common\Easy.Common.csproj">
       <Project>{fbb9cd59-f813-4bc7-b42e-07cf0b2a7a8e}</Project>
       <Name>Easy.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Easy.RedisManager.Common\Easy.RedisManager.Common.csproj">
+      <Project>{6cd326f1-f65f-4b57-9378-ad4656ee42f5}</Project>
+      <Name>Easy.RedisManager.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

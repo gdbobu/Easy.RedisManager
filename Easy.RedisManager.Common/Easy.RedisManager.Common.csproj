@@ -45,7 +45,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command\RedisCommands.cs" />
+    <Compile Include="Enum\EnumNodeType.cs" />
+    <Compile Include="Enum\EnumOrderType.cs" />
     <Compile Include="Enum\EnumRedisKeyType.cs" />
+    <Compile Include="Enum\EnumRedisVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

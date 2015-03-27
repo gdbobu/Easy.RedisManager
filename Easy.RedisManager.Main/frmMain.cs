@@ -60,10 +60,8 @@ namespace Easy.RedisManager.Main
             {
                 var node = new TreeNode(config.Name);
                 node.Tag = config;
-                if (config.IsConnected)
-                    node.ImageIndex = Index_RedisOnline;
-                else
-                    node.ImageIndex = Index_RedisOffline;
+                node.ImageIndex = Index_RedisOnline;
+                node.ImageIndex = Index_RedisOffline;
                 treDBList.Nodes.Add(node);
             }
             treDBList.Refresh();
@@ -76,7 +74,7 @@ namespace Easy.RedisManager.Main
         /// <param name="dicDbInfo"></param>
         /// <param name="config"></param>
         private void BindDbToTree(TreeNode parentNode, Dictionary<long, long> dicDbInfo
-            , RedisConnectionConfig config)
+            , RedisConnConfig config)
         {
             if (parentNode == null)
                 return;
@@ -199,13 +197,13 @@ namespace Easy.RedisManager.Main
         }
 
         /// <summary>
-        /// 单击某个节点
+        /// Node Click
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void treDBList_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            Thread thread = new Thread(()=>
+            Thread thread = new Thread(() =>
             {
                 var connNode = e.Node;
                 if (connNode == null)
@@ -215,8 +213,8 @@ namespace Easy.RedisManager.Main
                 {
                     RefreshTreeListNodeStatus(connNode, Index_RedisWait);
                 });
-                
-                var connNodeTag = connNode.Tag as RedisConnectionConfig;
+
+                var connNodeTag = connNode.Tag as RedisConnConfig;
                 if (connNodeTag != null)
                 {
                     using (var redisSocket = new RedisSocketClient(connNodeTag.Host, connNodeTag.Port))
@@ -240,7 +238,7 @@ namespace Easy.RedisManager.Main
                     {
                         using (var redisSocket = new RedisSocketClient(nodeInfo.ParentHost, nodeInfo.ParentPort))
                         {
-                            var keys = redisSocket.GetAllKeysByDb(nodeInfo.Db).OrderBy(x=>x).ToList();
+                            var keys = redisSocket.GetAllKeysByDb(nodeInfo.Db).OrderBy(x => x).ToList();
                             this.BeginInvoke((MethodInvoker)delegate
                             {
                                 BindKeysToTree(connNode, keys);

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Easy.Common;
+using System.Threading;
+using System.Collections.Concurrent;
 
 namespace Easy.RedisManager.Entity.Dictionary
 {
@@ -14,20 +16,20 @@ namespace Easy.RedisManager.Entity.Dictionary
     /// </summary>
     public class RedisConnectionDict:BaseDict
     {
+        private int _index = 0;
         /// <summary>
         /// 文档内容
         /// </summary>
-        public XElement ConfigDoc { get; private set; }
+        private XElement _configDoc;
 
         /// <summary>
         /// Redis配置信息字典
         /// </summary>
-        public Dictionary<string, RedisConnectionConfig> RedisConnDict { get; set; }
+        private ConcurrentDictionary<int, RedisConnConfig> _redisConnDict;
 
         public RedisConnectionDict()
         {
         }
-
 
         /// <summary>
         /// 初始化
@@ -35,26 +37,29 @@ namespace Easy.RedisManager.Entity.Dictionary
         /// <param name="fileFullPath">配置文件的路径</param>
         public RedisConnectionDict(string fileFullPath)
         {
-            ConfigDoc = XElement.Load(fileFullPath);
-            RedisConnDict = new Dictionary<string, RedisConnectionConfig>();
-            RedisConnectionConfig data = null;
+            _configDoc = XElement.Load(fileFullPath);
+            _redisConnDict = new ConcurrentDictionary<int, RedisConnConfig>();
+            RedisConnConfig data = null;
 
-            IEnumerator<XElement> enumerator = ConfigDoc.Elements("RedisConnection").GetEnumerator();
+            IEnumerator<XElement> enumerator = _configDoc.Elements("RedisConnection").GetEnumerator();
             while (enumerator.MoveNext())
             {
                 XElement element = enumerator.Current;
-                string host = element.Attribute("Host").Value;
-                if (RedisConnDict.ContainsKey(host))
+
+                Interlocked.Increment(ref _index);
+                if (_redisConnDict.ContainsKey(_index))
                     continue;
 
-                data = new RedisConnectionConfig();
-                RedisConnDict.Add(host, data);
-                data.Host = host;
+                data = new RedisConnConfig();
+                data.Id = _index;
+                data.Host = GetAttributeValue(element, "Host");
                 data.Name = GetAttributeValue(element, "Name");
                 data.Port = GetAttributeValue(element, "Port").ToInt();
                 data.Auth = GetAttributeValue(element, "Auth");
                 data.ConnectionTimeOut = GetAttributeValue(element, "ConnectionTimeOut").ToInt();
                 data.CommandExecutionTimeOut = GetAttributeValue(element, "CommandExecutionTimeOut").ToInt();
+
+                _redisConnDict.TryAdd(_index, data);
             }
         }
 
@@ -64,29 +69,44 @@ namespace Easy.RedisManager.Entity.Dictionary
         /// <param name="fileFullPath"></param>
         public void Init(string fileFullPath)
         {
-            ConfigDoc = XElement.Load(fileFullPath);
-            RedisConnDict = new Dictionary<string, RedisConnectionConfig>();
-            RedisConnectionConfig config = null;
+            _configDoc = XElement.Load(fileFullPath);
+            _redisConnDict = new ConcurrentDictionary<int, RedisConnConfig>();
+            RedisConnConfig config = null;
+            _index = 0;
 
-            IEnumerator<XElement> enumerator = ConfigDoc.Elements("RedisConnection").GetEnumerator();
+            IEnumerator<XElement> enumerator = _configDoc.Elements("RedisConnection").GetEnumerator();
             while (enumerator.MoveNext())
             {
                 XElement element = enumerator.Current;
+                Interlocked.Increment(ref _index);
+
                 string host = element.Attribute("Host").Value;
-                if (RedisConnDict.ContainsKey(host))
+                if (_redisConnDict.ContainsKey(_index))
                     continue;
 
-                config = new RedisConnectionConfig();
-                RedisConnDict.Add(host, config);
-                config.Host = host;
+                config = new RedisConnConfig();
+                config.Id = _index;
+                config.Host = GetAttributeValue(element, "Host");
                 config.Name = GetAttributeValue(element, "Name");
                 config.Port = GetAttributeValue(element, "Port").ToInt();
                 config.Auth = GetAttributeValue(element, "Auth");
                 config.ConnectionTimeOut = GetAttributeValue(element, "ConnectionTimeOut").ToInt();
                 config.CommandExecutionTimeOut = GetAttributeValue(element, "CommandExecutionTimeOut").ToInt();
-            }
 
+                _redisConnDict.TryAdd(_index, config);
+            }
         }
 
+        /// <summary>
+        /// 根据ID获取ConnectionConfig
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public RedisConnConfig GetConnConfigById(int id)
+        {
+            RedisConnConfig config = null;
+            _redisConnDict.TryGetValue(id, out config);
+            return config;
+        }
     }
 }

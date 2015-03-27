@@ -7,20 +7,40 @@ using System.Text;
 namespace Easy.RedisManager.Common.Enum
 {
     /// <summary>
-    /// The type of RedisKey
+    /// The Type of the tree node
     /// </summary>
-    public enum EnumRedisKeyType
+    public enum EnumNodeType:byte
     {
         /// <summary>
-        /// None
+        /// Root
         /// </summary>
-        [Description("None")]
-        None,
+        [Description("Root")]
+        Root,
+        /// <summary>
+        /// Server
+        /// </summary>
+        [Description("Server")]
+        Server,
+        /// <summary>
+        /// DataBase
+        /// </summary>
+        [Description("DataBase")]
+        DataBase,
+        /// <summary>
+        /// Container
+        /// </summary>
+        [Description("Container")]
+        Container,
         /// <summary>
         /// String
         /// </summary>
         [Description("String")]
         String,
+        /// <summary>
+        /// Hash
+        /// </summary>
+        [Description("Hash")]
+        Hash,
         /// <summary>
         /// List
         /// </summary>
@@ -35,11 +55,6 @@ namespace Easy.RedisManager.Common.Enum
         /// SortedSet
         /// </summary>
         [Description("SortedSet")]
-        SortedSet,
-        /// <summary>
-        /// Hash
-        /// </summary>
-        [Description("Hash")]
-        Hash,
+        SortedSet
     }
 }
