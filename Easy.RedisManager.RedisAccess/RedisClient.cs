@@ -60,10 +60,11 @@ namespace Easy.RedisManager.RedisAccess
                 return t.FromUnixTime();
             }
         }
+
         /// <summary>
-        /// 信息字典
+        /// Redis数据库信息字典
         /// </summary>
-        public ConcurrentDictionary<string, string> Info
+        public ConcurrentDictionary<string, string> RedisInfo
         {
             get
             {
@@ -147,20 +148,16 @@ namespace Easy.RedisManager.RedisAccess
         /// </summary>
         /// <returns></returns>
         protected EnumRedisVersion GetRedisVersion()
-        { 
-            String info = jedis.info();
-            String[] infos = info.Split("\r\n".ToArray());
-            String version = null;
+        {
+            string version = "";
+            if (!RedisInfo.TryGetValue("redis_version", out version))
+                return EnumRedisVersion.REDIS_1_0;
 
-            for (int i = 0; i < infos.Length; i++)
-            {
-                if (infos[i].StartsWith("redis_version:"))
-                {
-                    String[] versionInfo = infos[i].Split(":".ToArray());
-                    version = versionInfo[1];
-                    break;
-                }
-            }
+            string[] versionInfos = version.Split(":".ToArray());
+            if (versionInfos == null || versionInfos.Length == 0)
+                return EnumRedisVersion.REDIS_1_0;
+
+            version = versionInfos[1];
 
             if (version.StartsWith("3.0"))
                 return EnumRedisVersion.REDIS_3_0;
@@ -191,33 +188,6 @@ namespace Easy.RedisManager.RedisAccess
         public void Dispose()
         {
             throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 生成ResponseError
-        /// </summary>
-        /// <param name="error"></param>
-        /// <returns></returns>
-        private RedisResponseException CreateResponseError(string error)
-        {
-            HadExceptions = true;
-            var throwEx = new RedisResponseException(
-                string.Format("{0}, Port: {1}, LastCommand: {2}", error, this._config.Port, this._socketClient.LastCommand));
-            s_Logger.Error(throwEx.Message);
-            throw throwEx;
-        }
-
-        /// <summary>
-        /// 生成连接错误
-        /// </summary>
-        /// <returns></returns>
-        private RedisException CreateConnectionError()
-        {
-            HadExceptions = true;
-            var throwEx = new RedisException(
-                string.Format("Unable to Connect: Port: {0}", this._config.Port), this._socketClient.LastSocketException);
-            s_Logger.Error(throwEx.Message);
-            throw throwEx;
         }
 
         /// <summary>
@@ -276,7 +246,8 @@ namespace Easy.RedisManager.RedisAccess
                     var offset = 0;
                     while (count > 0)
                     {
-                        var readCount = _buffStream.Read(retbuf, offset, count);
+                        var readCount = this._socketClient.SafeReadByte(retbuf, offset, count);
+                        //var readCount = _buffStream.Read(retbuf, offset, count);
                         if (readCount <= 0)
                             throw CreateResponseError("Unexpected end of Stream");
 
@@ -284,7 +255,8 @@ namespace Easy.RedisManager.RedisAccess
                         count -= readCount;
                     }
 
-                    if (_buffStream.ReadByte() != '\r' || _buffStream.ReadByte() != '\n')
+                    if (this._socketClient.SafeReadByte() != '\r' 
+                        || this._socketClient.SafeReadByte() != '\n')
                         throw CreateResponseError("Invalid termination");
 
                     return retbuf;
@@ -319,6 +291,33 @@ namespace Easy.RedisManager.RedisAccess
         private void Log(string fmt, params object[] args)
         {
             s_Logger.Debug(string.Format("{0}", string.Format(fmt, args).Trim()));
+        }
+
+        /// <summary>
+        /// 生成ResponseError
+        /// </summary>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        private RedisResponseException CreateResponseError(string error)
+        {
+            HadExceptions = true;
+            var throwEx = new RedisResponseException(
+                string.Format("{0}, Port: {1}, LastCommand: {2}", error, this._config.Port, this._socketClient.LastCommand));
+            s_Logger.Error(throwEx.Message);
+            throw throwEx;
+        }
+
+        /// <summary>
+        /// 生成连接错误
+        /// </summary>
+        /// <returns></returns>
+        private RedisException CreateConnectionError()
+        {
+            HadExceptions = true;
+            var throwEx = new RedisException(
+                string.Format("Unable to Connect: Port: {0}", this._config.Port), this._socketClient.LastSocketException);
+            s_Logger.Error(throwEx.Message);
+            throw throwEx;
         }
     }
 }

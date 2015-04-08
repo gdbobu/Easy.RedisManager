@@ -38,9 +38,9 @@ namespace Easy.RedisManager.RedisAccess.Communication
         // 接收数据的缓存
         protected BufferedStream _buffStream;
         // Timer类的实例
-        private Timer _usageTimer;
+        // private Timer _usageTimer;
         // 每小时请求的次数
-        private int _requestsPerHour;
+        //private int _requestsPerHour;
         // 客户端的端口号
         private int _clientPort;
         // 当前缓存
@@ -207,11 +207,11 @@ namespace Easy.RedisManager.RedisAccess.Communication
             // 在超过 dueTime 后及此后每隔 period 时间间隔，都会调用一次由 callback 参数指定的委托。
             // 如果 dueTime 为零 (0)，则立即调用 callback。 如果 dueTime 是 -1 毫秒，则不会调用 callback；计时器将被禁用，但通过调用 Change 方法可以重新启用计时器。
             // 如果 period 为零 (0) 或 -1 毫秒，而且 dueTime 为正，则只会调用一次 callback；计时器的定期行为将被禁用，但通过使用 Change 方法可以重新启用该行为。
-            if (_usageTimer == null)
-            {
-                _usageTimer = new Timer(delegate { this._requestsPerHour = 0; }, null, TimeSpan.FromMilliseconds(0),
-                    TimeSpan.FromHours(1));
-            }
+            //if (_usageTimer == null)
+            //{
+            //    _usageTimer = new Timer(delegate { this._requestsPerHour = 0; }, null, TimeSpan.FromMilliseconds(0),
+            //        TimeSpan.FromHours(1));
+            //}
 
             // 初始化Socket
             _redisSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
@@ -532,7 +532,7 @@ namespace Easy.RedisManager.RedisAccess.Communication
         {
             if (!AssertConnectedSocket()) return false;
 
-            Interlocked.Increment(ref _requestsPerHour);
+            //Interlocked.Increment(ref _requestsPerHour);
 
             CmdLog(cmdWithBinaryArgs);
 
@@ -551,6 +551,18 @@ namespace Easy.RedisManager.RedisAccess.Communication
         public int SafeReadByte()
         {
             return _buffStream.ReadByte();
+        }
+
+        /// <summary>
+        /// 读取字节流
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public int SafeReadByte(byte[] array, int offset, int count)
+        {
+            return _buffStream.Read(array, offset, count);
         }
 
         /// <summary>
