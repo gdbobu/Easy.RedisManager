@@ -351,7 +351,7 @@ namespace Easy.RedisManager.RedisAccess.Communication
         {
             if (disposing)
             {
-                //dispose un managed resources
+                //dispose unmanaged resources
                 DisposeConnection();
             }
         }

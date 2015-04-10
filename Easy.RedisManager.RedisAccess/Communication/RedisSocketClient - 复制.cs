@@ -455,7 +455,7 @@ namespace Easy.RedisManager.RedisAccess.Communication
             }
         }
 
-        ~RedisSocketClient()
+        ~RedisSocketClient1()
         {
             Dispose(false);
         }
