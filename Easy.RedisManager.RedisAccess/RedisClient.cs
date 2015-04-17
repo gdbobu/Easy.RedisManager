@@ -248,6 +248,7 @@ namespace Easy.RedisManager.RedisAccess
 
             ExpectSuccess();
         }
+
         /// <summary>
         /// 发送命令，返回整型回复
         /// </summary>

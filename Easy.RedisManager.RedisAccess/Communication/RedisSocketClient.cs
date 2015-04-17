@@ -1,4 +1,5 @@
 ﻿using Easy.Common;
+using Easy.RedisManager.Common.Command;
 using Easy.RedisManager.RedisAccess.Exceptions;
 using System;
 using System.Collections.Generic;
@@ -50,7 +51,6 @@ namespace Easy.RedisManager.RedisAccess.Communication
         private int _currentBufferIndex;
         // 最近一次连接的时间
         internal long _lastConnectedAtTimestamp;
-
         #endregion
 
         #region Constructor
